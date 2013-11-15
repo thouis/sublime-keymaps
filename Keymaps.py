@@ -296,51 +296,53 @@ class KeymapsExtractor(object):
 	def getKeymaps(self):
 		packages = []
 		for package in self.active_packages:
-			keymaps = self.parseJSON(package, 'Default (' + PLATFORMS[sublime.platform()] + ')', 'sublime-keymap')
+			for platform in ['', ' (' + PLATFORMS[sublime.platform()] + ')']:
 
-			if keymaps is not None:
-				for keymap in keymaps:
-					item = {'package': package}
-					keys = keymap.get('keys')
-					if not keys:
-						continue
-					item['keys'] = []
-					for key_map in keys:
-						km = key_map.replace(u' ', u'').upper().split('+')
-						item['keys'].append(km)
-					# Sort keys
-					skeys = []
-					for key_token in item['keys']:
-						ktoks = []
-						for token in TOKENS:
-							if token in key_token:
-								ktoks.append(u'' + token)
-								key_token.remove(token)
-						if key_token[0] in FTOKENS:
-							ktoks.append(FTOKENS[key_token[0]])
-						else:
-							ktoks.append(key_token[0])
-						skeys.append(ktoks)
-					item['keys'] = skeys
-					# Get Command
-					command = keymap.get('command')
-					if not command:
-						continue
-					item['command'] = command
-					# Get Args
-					args = keymap.get('args')
-					if args:
-						if 'command' in args:
-							item['subcommand'] = args['command']
-						item['args'] = args
-					# Get Context
-					context = keymap.get('context')
-					if context:
-						item['context'] = []
-						for ctxt in context: 
-							if 'key' in ctxt:
-								item['context'].append(ctxt['key'])
-					packages.append(item)
+				keymaps = self.parseJSON(package, 'Default' + platform, 'sublime-keymap')
+
+				if keymaps is not None:
+					for keymap in keymaps:
+						item = {'package': package}
+						keys = keymap.get('keys')
+						if not keys:
+							continue
+						item['keys'] = []
+						for key_map in keys:
+							km = key_map.replace(u' ', u'').upper().split('+')
+							item['keys'].append(km)
+						# Sort keys
+						skeys = []
+						for key_token in item['keys']:
+							ktoks = []
+							for token in TOKENS:
+								if token in key_token:
+									ktoks.append(u'' + token)
+									key_token.remove(token)
+							if key_token[0] in FTOKENS:
+								ktoks.append(FTOKENS[key_token[0]])
+							else:
+								ktoks.append(key_token[0])
+							skeys.append(ktoks)
+						item['keys'] = skeys
+						# Get Command
+						command = keymap.get('command')
+						if not command:
+							continue
+						item['command'] = command
+						# Get Args
+						args = keymap.get('args')
+						if args:
+							if 'command' in args:
+								item['subcommand'] = args['command']
+							item['args'] = args
+						# Get Context
+						context = keymap.get('context')
+						if context:
+							item['context'] = []
+							for ctxt in context: 
+								if 'key' in ctxt:
+									item['context'].append(ctxt['key'])
+						packages.append(item)
 
 		# Merge keymaps in Order of Precedence (the way Sublime Text is doing it):
 		# 1. Load	Default keymaps (Packages/Default/*.sublime-keymap)
